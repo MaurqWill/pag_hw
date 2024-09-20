@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:C0dingTemp012!@localhost/factory_db'
@@ -21,7 +22,7 @@ class Order(db.Model):
             'quantity': self.quantity,
             'employee_id': self.employee_id,
             'total_amount': self.total_amount,
-            'date': self.date.isoformat(),  
+            'date': self.date.isoformat() if isinstance(self.date, datetime) else self.date,  
             'product_id': self.product_id,
             'customer_id': self.customer_id
         }
@@ -41,7 +42,7 @@ def get_orders():
     try:
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 10))
-        orders_query = Order.query.paginate(page, per_page, False)
+        orders_query = Order.query.paginate(page=page, per_page=per_page, error_out=False)
         order_list = [order.to_dict() for order in orders_query.items]
         
         return jsonify({
@@ -58,7 +59,7 @@ def get_products():
     try:
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 10))
-        products_query = Product.query.paginate(page, per_page, False)
+        products_query = Product.query.paginate(page=page, per_page=per_page, error_out=False)
         product_list = [product.to_dict() for product in products_query.items]
         
         return jsonify({
